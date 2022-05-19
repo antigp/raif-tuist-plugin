@@ -12,7 +12,7 @@ import RunShell
 @available(macOS 10.15, *)
 struct ContentView: View {
     @StateObject var model = ContentViewModel()
-    
+    @State var searchString = ""
     var body: some View {
         if model.credentionals != nil {
             VStack {
@@ -25,7 +25,28 @@ struct ContentView: View {
                     }
                     .pickerStyle(.segmented)
                 }
-                ScrollView {
+                if #available(macOS 12.0, *) {
+                    TextField("Search", text: $searchString)
+                    ScrollView {
+                        ForEach($model.allPods.filter({ $0.name.wrappedValue.contains(searchString) || searchString.isEmpty } )) { pod in
+                            HStack {
+                                Toggle("is DevPod", isOn: pod.devPod)
+                                    .toggleStyle(.checkbox).frame(width: 80, alignment: .leading)
+                                Text(pod.name.wrappedValue).frame(width: 150, alignment: .leading)
+                                if pod.devPod.wrappedValue {
+                                    Text("Branch:").frame(width: 50, alignment: .leading)
+                                    TextField("", text: pod.branch).frame(width: 250, alignment: .leading)
+                                    
+                                } else {
+                                    Text("Version:").frame(width: 50, alignment: .leading)
+                                    TextField("", text: pod.version).frame(width: 60, alignment: .leading)
+                                }
+                                Spacer()
+                            }.padding()
+                        }
+                        
+                    }
+                } else {
                     ForEach($model.allPods) { pod in
                         HStack {
                             Toggle("is DevPod", isOn: pod.devPod)
@@ -33,11 +54,12 @@ struct ContentView: View {
                             Text(pod.name.wrappedValue).frame(width: 150, alignment: .leading)
                             if pod.devPod.wrappedValue {
                                 Text("Branch:").frame(width: 50, alignment: .leading)
-                                TextField("", text: pod.branch).frame(width: 70, alignment: .leading)
+                                TextField("", text: pod.branch).frame(width: 250, alignment: .leading)
                             } else {
                                 Text("Version:").frame(width: 50, alignment: .leading)
-                                TextField("", text: pod.version).frame(width: 70, alignment: .leading)
+                                TextField("", text: pod.version).frame(width: 60, alignment: .leading)
                             }
+                            Spacer()
                         }.padding()
                     }
                 }
@@ -58,7 +80,7 @@ struct ContentView: View {
             Button {
                 model.saveCredentionals()
             } label: {
-                Text("Generate")
+                Text("Save")
             }
         }
     }
@@ -71,6 +93,7 @@ class ContentViewModel: ObservableObject {
     @Published var enteredLogin = ""
     @Published var enteredPassword = ""
     @Published var credentionals: (login: String, password: String)?
+    
     var initialPods: [PodDependecy]
     var dependecyRawList: String
     
@@ -206,18 +229,18 @@ class ContentViewModel: ObservableObject {
             query as CFDictionary,
             nil
         )
-
+        
         // Update key, if exists
         if status == errSecDuplicateItem {
             let attributes: [String: AnyObject] = [
-                   kSecValueData as String: password as AnyObject
+                kSecValueData as String: password as AnyObject
             ]
             status = SecItemUpdate(
-                  query as CFDictionary,
-                  attributes as CFDictionary
+                query as CFDictionary,
+                attributes as CFDictionary
             )
         }
-
+        
         // Any status other than errSecSuccess indicates the
         // save operation failed.
         guard status == errSecSuccess else {
@@ -233,25 +256,25 @@ class ContentViewModel: ObservableObject {
             case unexpectedStatus(OSStatus)
         }
         let query: [String: AnyObject] = [
-                kSecAttrService as String: "https://jira.raiffeisen.ru" as AnyObject,
-                kSecClass as String: kSecClassInternetPassword,
-                kSecMatchLimit as String: kSecMatchLimitOne,
-                kSecReturnData as String: kCFBooleanTrue,
-                kSecReturnAttributes as String: kCFBooleanTrue
-            ]
-
-            // SecItemCopyMatching will attempt to copy the item
-            // identified by query to the reference itemCopy
-            var itemCopy: AnyObject?
-            let status = SecItemCopyMatching(
-                query as CFDictionary,
-                &itemCopy
-            )
+            kSecAttrService as String: "https://jira.raiffeisen.ru" as AnyObject,
+            kSecClass as String: kSecClassInternetPassword,
+            kSecMatchLimit as String: kSecMatchLimitOne,
+            kSecReturnData as String: kCFBooleanTrue,
+            kSecReturnAttributes as String: kCFBooleanTrue
+        ]
+        
+        // SecItemCopyMatching will attempt to copy the item
+        // identified by query to the reference itemCopy
+        var itemCopy: AnyObject?
+        let status = SecItemCopyMatching(
+            query as CFDictionary,
+            &itemCopy
+        )
         
         guard status != errSecItemNotFound else {
             throw GettingError.itemNotFound
         }
-
+        
         guard status == errSecSuccess else {
             throw GettingError.unexpectedStatus(status)
         }
