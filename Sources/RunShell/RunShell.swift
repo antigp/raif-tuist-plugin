@@ -7,7 +7,10 @@
 
 import Foundation
 
-func shell(_ command: String) throws {
+public func shell(_ command: String, print: Bool = true) throws {
+    if print {
+        Swift.print("Run command: \(command)")
+    }
     enum Terminate: Error {
         case status(Int32)
     }

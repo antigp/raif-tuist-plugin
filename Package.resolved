@@ -1,0 +1,14 @@
+{
+  "pins" : [
+    {
+      "identity" : "swift-commandlinekit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/objecthub/swift-commandlinekit.git",
+      "state" : {
+        "revision" : "dd0967785f84476a1a51ef164f9030851fcaaaff",
+        "version" : "0.3.4"
+      }
+    }
+  ],
+  "version" : 2
+}
