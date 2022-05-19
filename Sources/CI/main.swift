@@ -8,6 +8,7 @@
 import Foundation
 import RunShell
 
+setbuf(__stdoutp, nil)
 do {
     if !FileManager.default.fileExists(atPath: "./scripts/generator") {
         try? shell("git clone https://gitlabci.raiffeisen.ru/mobile_development/ios-kit/ios-flagship.git")

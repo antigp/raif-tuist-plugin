@@ -33,12 +33,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         view.frame = CGRect(origin: .zero, size: size)
         view.autoresizingMask = [.height, .width]
         window.contentView!.addSubview(view)
-        window.center()
-        window.makeKeyAndOrderFront(window)
-        
-        NSApp.mainWindow?.makeKeyAndOrderFront(self)
-        NSApp.setActivationPolicy(.regular)
-        NSApp.activate(ignoringOtherApps: true)
-        NSApplication.shared.activate(ignoringOtherApps: true)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {[window] in
+            window.center()
+            window.makeKeyAndOrderFront(window)
+            
+            NSApp.mainWindow?.makeKeyAndOrderFront(self)
+            NSApp.setActivationPolicy(.regular)
+            NSApp.activate(ignoringOtherApps: true)
+            NSApplication.shared.activate(ignoringOtherApps: true)
+        }
     }
 }
