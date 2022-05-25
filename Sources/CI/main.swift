@@ -19,7 +19,7 @@ do {
         try shell("bundle install")
     }
     if ((try? shell("bundle exec pod repo-art list | grep artifactory.raiffeisen.ru")) == nil) {
-        try shell("bundle exec pod repo-art remove cocoapods-art")
+        try? shell("bundle exec pod repo-art remove cocoapods-art")
         try shell("bundle exec pod repo-art add cocoapods-art \"https://artifactory.raiffeisen.ru/artifactory/api/pods/cocoapods\"")
     }
     try shell("./scripts/generator -e _Prebuild")
