@@ -25,6 +25,8 @@ do {
     ) {
         try? shell("bundle exec pod repo-art remove cocoapods-art")
         try shell("bundle exec pod repo-art add cocoapods-art \"https://artifactory.raiffeisen.ru/artifactory/api/pods/cocoapods\"")
+    } else {
+        try shell("bundle exec pod repo-art update cocoapods-art")
     }
         
     try shell("./scripts/generator -e _Prebuild")
