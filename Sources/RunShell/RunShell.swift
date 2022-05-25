@@ -7,7 +7,15 @@
 
 import Foundation
 
-public func shell(_ command: String, print: Bool = true) throws {
+public var defaultShell: String?
+public func shell(_ command: String, print: Bool = true, shell: String? = defaultShell) throws {
+    let homeDirURL = URL(fileURLWithPath: NSHomeDirectory()).path
+    var runShell = shell
+    if runShell == nil {
+        runShell = try shellWithResult("dscl . -read \(homeDirURL) UserShell | sed 's/UserShell: //'").trimmingCharacters(in: .whitespacesAndNewlines)
+        defaultShell = runShell
+        Swift.print("Select shell: \(runShell ?? "None")")
+    }
     if print {
         Swift.print("Run command: \(command)")
     }
@@ -18,17 +26,20 @@ public func shell(_ command: String, print: Bool = true) throws {
     
     let fileManager = FileManager.default
     var sourceRC = ""
-    let homeDirURL = URL(fileURLWithPath: NSHomeDirectory()).path
-    if fileManager.fileExists(atPath: "\(homeDirURL)/.bashrc") {
-        sourceRC += "source \(homeDirURL)/.bashrc &&"
+    if runShell == "/bin/bash" {
+        if fileManager.fileExists(atPath: "\(homeDirURL)/.bashrc") {
+            sourceRC += "source \(homeDirURL)/.bashrc &&"
+        }
     }
-    if fileManager.fileExists(atPath: "\(homeDirURL)/.zshrc") {
-        sourceRC += "source \(homeDirURL)/.zshrc &&"
+    if runShell == "/bin/zsh" {
+        if fileManager.fileExists(atPath: "\(homeDirURL)/.zshrc") {
+            sourceRC += "source \(homeDirURL)/.zshrc &&"
+        }
     }
     task.standardOutput = FileHandle.standardOutput
     task.standardError = FileHandle.standardError
     task.arguments = ["--login", "-c", "export HOME=\(homeDirURL) && export LANG=en_US.UTF-8 && \(sourceRC)" + command]
-    task.launchPath = "/bin/zsh"
+    task.launchPath = runShell
     task.standardInput = nil
     task.environment = ["HOME": homeDirURL]
     task.currentDirectoryURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
@@ -39,4 +50,22 @@ public func shell(_ command: String, print: Bool = true) throws {
     guard task.terminationStatus == 0 else {
         throw Terminate.status(task.terminationStatus)
     }
+}
+
+fileprivate func shellWithResult(_ command: String) throws -> String {
+    let task = Process()
+    let pipe = Pipe()
+    
+    task.standardOutput = pipe
+    task.standardError = pipe
+    task.arguments = ["-c", command]
+    task.executableURL = URL(fileURLWithPath: "/bin/bash")
+    task.standardInput = nil
+
+    try task.run()
+    
+    let data = pipe.fileHandleForReading.readDataToEndOfFile()
+    let output = String(data: data, encoding: .utf8)!
+    
+    return output
 }
