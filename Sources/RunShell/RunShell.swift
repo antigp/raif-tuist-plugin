@@ -28,7 +28,7 @@ public func shell(_ command: String, print: Bool = true) throws {
     task.standardOutput = FileHandle.standardOutput
     task.standardError = FileHandle.standardError
     task.arguments = ["--login", "-c", "export HOME=\(homeDirURL) && export LANG=en_US.UTF-8 && \(sourceRC)" + command]
-    task.launchPath = "/bin/bash"
+    task.launchPath = "/bin/zsh"
     task.standardInput = nil
     task.environment = ["HOME": homeDirURL]
     task.currentDirectoryURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
