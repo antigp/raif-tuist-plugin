@@ -20,7 +20,7 @@ do {
     }
     try shell("./scripts/generator -e _Prebuild")
     try shell("tuist generate -n")
-    try shell("TYPE=STATIC bundle exec pod install --repo-update")
+    try shell("CI_PIPELINE=TRUE TYPE=STATIC bundle exec pod install --repo-update")
 } catch {
     fatalError(error.localizedDescription)
 }
