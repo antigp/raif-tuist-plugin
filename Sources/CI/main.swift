@@ -18,10 +18,15 @@ do {
     if (try? shell("bundle check")) == nil {
         try shell("bundle install")
     }
-    if ((try? shell("bundle exec pod repo-art list | grep cocoapods-art")) == nil) {
+    let homeDirURL = URL(fileURLWithPath: NSHomeDirectory())
+    if (
+        (try? shell("bundle exec pod repo-art list | grep cocoapods-art")) == nil ||
+        !FileManager.default.fileExists(atPath: "\(homeDirURL.path)/.cocoapods/repos-art/cocoapods-art/.artpodrc")
+    ) {
         try? shell("bundle exec pod repo-art remove cocoapods-art")
         try shell("bundle exec pod repo-art add cocoapods-art \"https://artifactory.raiffeisen.ru/artifactory/api/pods/cocoapods\"")
     }
+        
     try shell("./scripts/generator -e _Prebuild")
     try shell("tuist generate -n")
     try shell("CI_PIPELINE=TRUE TYPE=STATIC bundle exec pod install --repo-update")
