@@ -47,20 +47,22 @@ struct ContentView: View {
                         
                     }
                 } else {
-                    ForEach($model.allPods) { pod in
-                        HStack {
-                            Toggle("is DevPod", isOn: pod.devPod)
-                                .toggleStyle(.checkbox).frame(width: 80, alignment: .leading)
-                            Text(pod.name.wrappedValue).frame(width: 150, alignment: .leading)
-                            if pod.devPod.wrappedValue {
-                                Text("Branch:").frame(width: 50, alignment: .leading)
-                                TextField("", text: pod.branch).frame(width: 250, alignment: .leading)
-                            } else {
-                                Text("Version:").frame(width: 50, alignment: .leading)
-                                TextField("", text: pod.version).frame(width: 100, alignment: .leading)
-                            }
-                            Spacer()
-                        }.padding()
+                    ScrollView {
+                        ForEach($model.allPods) { pod in
+                            HStack {
+                                Toggle("is DevPod", isOn: pod.devPod)
+                                    .toggleStyle(.checkbox).frame(width: 80, alignment: .leading)
+                                Text(pod.name.wrappedValue).frame(width: 150, alignment: .leading)
+                                if pod.devPod.wrappedValue {
+                                    Text("Branch:").frame(width: 50, alignment: .leading)
+                                    TextField("", text: pod.branch).frame(width: 250, alignment: .leading)
+                                } else {
+                                    Text("Version:").frame(width: 50, alignment: .leading)
+                                    TextField("", text: pod.version).frame(width: 100, alignment: .leading)
+                                }
+                                Spacer()
+                            }.padding()
+                        }
                     }
                 }
                 if model.isGenerating {

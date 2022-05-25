@@ -9,10 +9,10 @@ import Foundation
 
 public var defaultShell: String?
 public func shell(_ command: String, print: Bool = true, shell: String? = defaultShell) throws {
-    let homeDirURL = URL(fileURLWithPath: NSHomeDirectory()).path
+    let homeDirURL = URL(fileURLWithPath: NSHomeDirectory())    
     var runShell = shell
     if runShell == nil {
-        runShell = try shellWithResult("dscl . -read \(homeDirURL) UserShell | sed 's/UserShell: //'").trimmingCharacters(in: .whitespacesAndNewlines)
+        runShell = try shellWithResult("dscl . -read /Users/\(homeDirURL.lastPathComponent) UserShell | sed 's/UserShell: //'").trimmingCharacters(in: .whitespacesAndNewlines)
         defaultShell = runShell
         Swift.print("Select shell: \(runShell ?? "None")")
     }
@@ -27,21 +27,21 @@ public func shell(_ command: String, print: Bool = true, shell: String? = defaul
     let fileManager = FileManager.default
     var sourceRC = ""
     if runShell == "/bin/bash" {
-        if fileManager.fileExists(atPath: "\(homeDirURL)/.bashrc") {
-            sourceRC += "source \(homeDirURL)/.bashrc &&"
+        if fileManager.fileExists(atPath: "\(homeDirURL.path)/.bashrc") {
+            sourceRC += "source \(homeDirURL.path)/.bashrc &&"
         }
     }
     if runShell == "/bin/zsh" {
-        if fileManager.fileExists(atPath: "\(homeDirURL)/.zshrc") {
-            sourceRC += "source \(homeDirURL)/.zshrc &&"
+        if fileManager.fileExists(atPath: "\(homeDirURL.path)/.zshrc") {
+            sourceRC += "source \(homeDirURL.path)/.zshrc &&"
         }
     }
     task.standardOutput = FileHandle.standardOutput
     task.standardError = FileHandle.standardError
-    task.arguments = ["--login", "-c", "export HOME=\(homeDirURL) && export LANG=en_US.UTF-8 && \(sourceRC)" + command]
+    task.arguments = ["--login", "-c", "export HOME=\(homeDirURL.path) && export LANG=en_US.UTF-8 && \(sourceRC)" + command]
     task.launchPath = runShell
     task.standardInput = nil
-    task.environment = ["HOME": homeDirURL]
+    task.environment = ["HOME": homeDirURL.path]
     task.currentDirectoryURL = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
     task.launch()
     
