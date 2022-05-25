@@ -18,8 +18,8 @@ do {
     if (try? shell("bundle check")) == nil {
         try shell("bundle install")
     }
-    if ((try? shell("bundle pod repo list | grep \"https://artifactory.raiffeisen.ru/artifactory/api/pods/cocoapods\"")) == nil) {
-        try shell("bundle pod repo-art add cocoapods-art \"https://artifactory.raiffeisen.ru/artifactory/api/pods/cocoapods\"")
+    if ((try? shell("bundle exec pod repo list | grep \"https://artifactory.raiffeisen.ru/artifactory/api/pods/cocoapods\"")) == nil) {
+        try shell("bundle exec pod repo-art add cocoapods-art \"https://artifactory.raiffeisen.ru/artifactory/api/pods/cocoapods\"")
     }
     try shell("./scripts/generator -e _Prebuild")
     try shell("tuist generate -n")
