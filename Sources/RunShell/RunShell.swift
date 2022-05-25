@@ -12,7 +12,10 @@ public func shell(_ command: String, print: Bool = true, shell: String? = defaul
     let homeDirURL = URL(fileURLWithPath: NSHomeDirectory())    
     var runShell = shell
     if runShell == nil {
-        runShell = try shellWithResult("dscl . -read /Users/\(homeDirURL.lastPathComponent) UserShell | sed 's/UserShell: //'").trimmingCharacters(in: .whitespacesAndNewlines)
+        runShell = try shellWithResult("dscl . -read \(homeDirURL.path) UserShell | sed 's/UserShell: //'").trimmingCharacters(in: .whitespacesAndNewlines)
+        if runShell != "/bin/zsh" {
+            runShell = "/bin/bash"
+        }
         defaultShell = runShell
         Swift.print("Select shell: \(runShell ?? "None")")
     }
