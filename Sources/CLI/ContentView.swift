@@ -39,7 +39,7 @@ struct ContentView: View {
                                     
                                 } else {
                                     Text("Version:").frame(width: 50, alignment: .leading)
-                                    TextField("", text: pod.version).frame(width: 60, alignment: .leading)
+                                    TextField("", text: pod.version).frame(width: 100, alignment: .leading)
                                 }
                                 Spacer()
                             }.padding()
@@ -57,7 +57,7 @@ struct ContentView: View {
                                 TextField("", text: pod.branch).frame(width: 250, alignment: .leading)
                             } else {
                                 Text("Version:").frame(width: 50, alignment: .leading)
-                                TextField("", text: pod.version).frame(width: 60, alignment: .leading)
+                                TextField("", text: pod.version).frame(width: 100, alignment: .leading)
                             }
                             Spacer()
                         }.padding()
@@ -176,19 +176,25 @@ class ContentViewModel: ObservableObject {
                 case 0:
                     guard let credentionals = self.credentionals,!credentionals.login.isEmpty && !credentionals.password.isEmpty else { fatalError() }
                     print("Run Command: bundle exec pod binary fetch --repo-update")
+                    try shell("rm -Rf _Prebuild")
+                    try shell("rm -Rf _Prebuild_delta")
+                    try shell("rm -Rf Pods")
                     try shell("ARTIFACTORY_LOGIN=\(credentionals.login) ARTIFACTORY_PASSWORD=\(credentionals.password) bundle exec pod binary fetch --repo-update", print: false)
                     try shell("bundle exec pod install")
                 case 1:
                     try shell("rm -Rf _Prebuild")
                     try shell("rm -Rf _Prebuild_delta")
+                    try shell("rm -Rf Pods")
                     try shell("TYPE=TEST bundle exec pod install --repo-update")
                 case 2:
                     try shell("rm -Rf _Prebuild")
                     try shell("rm -Rf _Prebuild_delta")
+                    try shell("rm -Rf Pods")
                     try shell("bundle exec pod install")
                 default:
                     try shell("rm -Rf _Prebuild")
                     try shell("rm -Rf _Prebuild_delta")
+                    try shell("rm -Rf Pods")
                     try shell("TYPE=STATIC bundle exec pod install --repo-update")
                 }
                 try shell("open RMobile.xcworkspace")
@@ -289,7 +295,9 @@ class ContentViewModel: ObservableObject {
         guard let password = String(data: passwordData, encoding: .utf8), !username.isEmpty else {
             throw GettingError.invalidItemFormat
         }
-        
+        guard !username.isEmpty && !password.isEmpty else {
+            throw GettingError.itemNotFound
+        }
         return (login: username, password: password)
     }
 }
