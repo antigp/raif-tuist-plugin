@@ -18,7 +18,7 @@ do {
     if (try? shell("bundle check")) == nil {
         try shell("bundle install")
     }
-    if ((try? shell("bundle exec pod repo-art list | grep artifactory.raiffeisen.ru")) == nil) {
+    if ((try? shell("bundle exec pod repo-art list | grep cocoapods-art")) == nil) {
         try? shell("bundle exec pod repo-art remove cocoapods-art")
         try shell("bundle exec pod repo-art add cocoapods-art \"https://artifactory.raiffeisen.ru/artifactory/api/pods/cocoapods\"")
     }
