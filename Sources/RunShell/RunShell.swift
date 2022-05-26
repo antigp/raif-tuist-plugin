@@ -13,7 +13,10 @@ public func shell(_ command: String, print: Bool = true, shell: String? = defaul
     var runShell = shell
     if runShell == nil {
         runShell = try shellWithResult("dscl . -read \(homeDirURL.path) UserShell | sed 's/UserShell: //'").trimmingCharacters(in: .whitespacesAndNewlines)
-        if runShell != "/bin/zsh" {
+        switch(runShell){
+        case "/bin/zsh", "/bin/bash":
+            ()
+        default:
             runShell = "/bin/bash"
         }
         defaultShell = runShell

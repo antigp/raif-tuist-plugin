@@ -76,7 +76,7 @@ struct ContentView: View {
                 }
             }.padding()
         } else {
-            Text("Enter artifactory:").frame(width: 50, alignment: .leading)
+            Text("Enter artifactory:")
             TextField("Login", text: $model.enteredLogin)
             SecureField("Password", text: $model.enteredPassword)
             Button {

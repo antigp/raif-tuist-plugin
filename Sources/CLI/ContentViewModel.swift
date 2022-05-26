@@ -90,6 +90,9 @@ class ContentViewModel: ObservableObject {
                     try? shell("cp ./ios-flagship/Sources/generator scripts")
                     try? shell("rm -rf ios-flagship")
                 }
+                try shell("rm -Rf _Prebuild")
+                try shell("rm -Rf _Prebuild_delta")
+                try shell("rm -Rf Pods")
                 if (try? shell("bundle check")) == nil {
                     try shell("bundle install")
                 }
@@ -98,26 +101,14 @@ class ContentViewModel: ObservableObject {
                 switch(self.buildType){
                 case 0:
                     guard let credentionals = self.credentionals,!credentionals.login.isEmpty && !credentionals.password.isEmpty else { fatalError() }
-                    print("Run Command: bundle exec pod binary fetch --repo-update")
-                    try shell("rm -Rf _Prebuild")
-                    try shell("rm -Rf _Prebuild_delta")
-                    try shell("rm -Rf Pods")
+                    print("Run Command: ARTIFACTORY_LOGIN=\(credentionals.login) ARTIFACTORY_PASSWORD=\(credentionals.password.map({_ in "*"}).joined(separator: "")) bundle exec pod binary fetch --repo-update")
                     try shell("ARTIFACTORY_LOGIN=\(credentionals.login) ARTIFACTORY_PASSWORD=\(credentionals.password) bundle exec pod binary fetch --repo-update", print: false)
                     try shell("bundle exec pod install")
                 case 1:
-                    try shell("rm -Rf _Prebuild")
-                    try shell("rm -Rf _Prebuild_delta")
-                    try shell("rm -Rf Pods")
                     try shell("TYPE=TEST bundle exec pod install --repo-update")
                 case 2:
-                    try shell("rm -Rf _Prebuild")
-                    try shell("rm -Rf _Prebuild_delta")
-                    try shell("rm -Rf Pods")
                     try shell("bundle exec pod install")
                 default:
-                    try shell("rm -Rf _Prebuild")
-                    try shell("rm -Rf _Prebuild_delta")
-                    try shell("rm -Rf Pods")
                     try shell("TYPE=STATIC bundle exec pod install --repo-update")
                 }
                 try shell("open RMobile.xcworkspace")
@@ -144,7 +135,10 @@ class ContentViewModel: ObservableObject {
         let query: [String: AnyObject] = [
             // kSecAttrService,  kSecAttrAccount, and kSecClass
             // uniquely identify the item to save in Keychain
-            kSecAttrService as String: "https://jira.raiffeisen.ru" as AnyObject,
+            kSecAttrService as String: "artifactory.raiffeisen.ru" as AnyObject,
+            kSecAttrLabel as String: "tuist cli" as AnyObject,
+            kSecAttrServer as String: "artifactory.raiffeisen.ru" as AnyObject,
+            kSecAttrProtocol as String: kSecAttrProtocolHTTPS,
             kSecAttrAccount as String: login as AnyObject,
             kSecClass as String: kSecClassInternetPassword,
             
@@ -172,6 +166,7 @@ class ContentViewModel: ObservableObject {
         
         // Any status other than errSecSuccess indicates the
         // save operation failed.
+        print(status)
         guard status == errSecSuccess else {
             throw SaveError.unexpectedStatus(status)
         }
@@ -185,7 +180,10 @@ class ContentViewModel: ObservableObject {
             case unexpectedStatus(OSStatus)
         }
         let query: [String: AnyObject] = [
-            kSecAttrService as String: "https://jira.raiffeisen.ru" as AnyObject,
+            kSecAttrService as String: "artifactory.raiffeisen.ru" as AnyObject,
+            kSecAttrLabel as String: "tuist cli" as AnyObject,
+            kSecAttrServer as String: "artifactory.raiffeisen.ru" as AnyObject,
+            kSecAttrProtocol as String: kSecAttrProtocolHTTPS,
             kSecClass as String: kSecClassInternetPassword,
             kSecMatchLimit as String: kSecMatchLimitOne,
             kSecReturnData as String: kCFBooleanTrue,
@@ -211,7 +209,7 @@ class ContentViewModel: ObservableObject {
         guard let dic = itemCopy as? NSDictionary else {
             throw GettingError.invalidItemFormat
         }
-        
+        print("Found password in \(dic[kSecAttrLabel] ?? "none")(\(dic[kSecAttrServer] ?? "none"))")
         let username = (dic[kSecAttrAccount] as? String) ?? ""
         let passwordData = (dic[kSecValueData] as? Data) ?? Data()
         
