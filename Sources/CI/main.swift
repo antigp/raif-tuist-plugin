@@ -36,6 +36,7 @@ do {
             print("Artifactory already updated: \(artifactoryUpdateTime)")
         }
     }
+    
         
     try shell("./scripts/generator -e _Prebuild")
     try shell("tuist generate -n")
