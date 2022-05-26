@@ -107,7 +107,7 @@ class ContentViewModel: ObservableObject {
                 case 1:
                     try shell("TYPE=TEST bundle exec pod install --repo-update")
                 case 2:
-                    try shell("bundle exec pod install")
+                    try shell("bundle exec pod install --repo-update")
                 default:
                     try shell("TYPE=STATIC bundle exec pod install --repo-update")
                 }
