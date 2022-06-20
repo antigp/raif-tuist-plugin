@@ -10,6 +10,10 @@ import RunShell
 import AppKit
 
 class ContentViewModel: ObservableObject {
+    enum CheckoutType {
+        case version(String)
+        case master
+    }
     @Published var buildType = 0
     @Published var allPods: [PodDependecy]
     @Published var isGenerating = false
@@ -121,6 +125,24 @@ class ContentViewModel: ObservableObject {
             
             NSApplication.shared.terminate(nil)
         }
+    }
+    
+    func checkout(pod: PodDependecy, to destination: CheckoutType) throws {
+        if !FileManager.default.fileExists(atPath: pod.localRepoPath + "/.git") {            
+            let specPath = try shell("bundle exec pod spec which \(pod.name) --show-all | grep raiffeisen | head -1 | xargs echo -n")
+            let gitURL = try shell("ruby -rcocoapods -e 'puts (eval File.read(\"\(specPath)\")).source[:git]'").trimmingCharacters(in: .newlines)
+            try shell("/usr/bin/git clone \(gitURL) \(pod.localRepoPath)")
+        } else {
+            try shell("/usr/bin/git -C \(pod.localRepoPath) fetch origin --progress --tags")
+        }
+        switch(destination){
+        case .master:
+            try shell("/usr/bin/git -C \(pod.localRepoPath) checkout master")
+            try shell("/usr/bin/git -C \(pod.localRepoPath) pull origin master")
+        case .version(let version):
+            try shell("/usr/bin/git -C \(pod.localRepoPath) checkout tags/\(version)")
+        }
+        
     }
     
     func saveCredentionals() {
