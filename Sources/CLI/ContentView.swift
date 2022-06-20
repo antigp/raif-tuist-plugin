@@ -14,6 +14,7 @@ struct ContentView: View {
     @StateObject var model = ContentViewModel()
     @State var searchString = ""
     @State var createDevPod: Binding<PodDependecy>?
+    @State var closeXcode = false
     var body: some View {
         if model.credentionals != nil {
             VStack {
@@ -97,12 +98,18 @@ struct ContentView: View {
                     ProgressView("Project generating").progressViewStyle(.linear)
                 } else {
                     Button {
-                        model.generatePod()
+                        if #available(macOS 12.0, *) {
+                            closeXcode = true
+                        } else {
+                            model.generatePod()
+                        }
                     } label: {
                         Text("Generate")
                     }
                 }
-            }.padding()
+            }
+            .modifier(PromtCloseXcode(closeXcode: $closeXcode, model: model))
+            .padding()
         } else {
             Text("Enter artifactory:")
             TextField("Login", text: $model.enteredLogin)
@@ -116,3 +123,21 @@ struct ContentView: View {
     }
 }
 
+struct PromtCloseXcode: ViewModifier {
+    @Binding var closeXcode: Bool
+    @ObservedObject var model: ContentViewModel
+    func body(content: Content) -> some View {
+        if #available(macOS 12.0, *) {
+            content
+                .alert("Do you want to close xcode? (It's better to close xcode during pod install)", isPresented: $closeXcode, actions: {
+                    Button("Yes, close, please") {
+                        model.closeXcode()
+                        model.generatePod()
+                    }
+                    Button("No, don't close my xcode") { model.generatePod() }
+                })
+        } else {
+            content
+        }
+    }
+}

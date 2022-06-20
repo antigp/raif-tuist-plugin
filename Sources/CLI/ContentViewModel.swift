@@ -127,6 +127,10 @@ class ContentViewModel: ObservableObject {
         }
     }
     
+    func closeXcode() {
+        try? shell("kill $(ps aux | grep 'Xcode' | awk '{print $2}')")
+    }
+    
     func checkout(pod: PodDependecy, to destination: CheckoutType) throws {
         if !FileManager.default.fileExists(atPath: pod.localRepoPath + "/.git") {            
             let specPath = try shell("bundle exec pod spec which \(pod.name) --show-all | grep raiffeisen | head -1 | xargs echo -n")
