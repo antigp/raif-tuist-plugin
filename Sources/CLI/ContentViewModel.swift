@@ -14,7 +14,11 @@ class ContentViewModel: ObservableObject {
         case version(String)
         case master
     }
-    @Published var buildType = 0
+    @Published var buildType = UserDefaults.standard.integer(forKey: "buildType") {
+        didSet {
+            UserDefaults.standard.set(buildType, forKey: "buildType")
+        }
+    }
     @Published var allPods: [PodDependecy]
     @Published var isGenerating = false
     @Published var enteredLogin = ""

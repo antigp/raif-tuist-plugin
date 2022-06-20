@@ -15,6 +15,7 @@ struct ContentView: View {
     @State var searchString = ""
     @State var createDevPod: Binding<PodDependecy>?
     @State var closeXcode = false
+    @State var displayOnlyDevPod = false
     var body: some View {
         if model.credentionals != nil {
             VStack {
@@ -28,9 +29,13 @@ struct ContentView: View {
                     .pickerStyle(.segmented)
                 }
                 if #available(macOS 12.0, *) {
-                    TextField("Search", text: $searchString)
+                    HStack {
+                        Toggle("DevOnly", isOn: $displayOnlyDevPod)
+                            .toggleStyle(.checkbox).frame(width: 80, alignment: .leading)
+                        TextField("Search", text: $searchString)
+                    }
                     ScrollView {
-                        ForEach($model.allPods.filter({ $0.name.wrappedValue.contains(searchString) || searchString.isEmpty } )) { pod in
+                        ForEach($model.allPods.filter({ $0.name.wrappedValue.uppercased().contains(searchString.uppercased()) || searchString.isEmpty } ).filter({ !displayOnlyDevPod || $0.devPod.wrappedValue })) { pod in
                             HStack {
                                 Toggle("is DevPod", isOn: pod.devPod)
                                     .toggleStyle(.checkbox).frame(width: 80, alignment: .leading)
