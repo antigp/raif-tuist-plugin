@@ -93,9 +93,14 @@ class ContentViewModel: ObservableObject {
         
         DispatchQueue.global(qos: .userInitiated).async {
             do {
-                if !FileManager.default.fileExists(atPath: "./scripts/generator") {
+                let flagshipVersion = self.allPods.first(where: { $0.name == "Flagship" })?.version ?? "0.0"
+                let scriptsFlagshipVersion = ((try? shell("cat scripts/generator.version")) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                if flagshipVersion != scriptsFlagshipVersion {
+                    try? shell("rm ./scripts/generator")
+                    try? shell("rm ./scripts/generator.version")
                     try? shell("git clone https://gitlabci.raiffeisen.ru/mobile_development/ios-kit/ios-flagship.git")
                     try? shell("cp ./ios-flagship/Sources/generator scripts")
+                    try? shell("cd ios-flagship && git describe --tags --abbrev=0 > ../scripts/generator.version")
                     try? shell("rm -rf ios-flagship")
                 }
                 try shell("rm -Rf _Prebuild")
