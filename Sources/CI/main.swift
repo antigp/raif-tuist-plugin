@@ -10,6 +10,7 @@ import RunShell
 
 setbuf(__stdoutp, nil)
 do {
+    let needsPodInstall = (try? shell("diff Podfile.lock Pods/Manifest.lock")) == nil
     if !FileManager.default.fileExists(atPath: "./scripts/generator") {
         try? shell("git clone https://gitlabci.raiffeisen.ru/mobile_development/ios-kit/ios-flagship.git")
         try? shell("cp ./ios-flagship/Sources/generator scripts")
@@ -20,27 +21,30 @@ do {
     }
     let homeDirURL = URL(fileURLWithPath: NSHomeDirectory())
     
-    if (
-        (try? shell("CI_PIPELINE=TRUE bundle exec pod repo-art list | grep cocoapods-art")) == nil ||
-        !FileManager.default.fileExists(atPath: "\(homeDirURL.path)/.cocoapods/repos-art/cocoapods-art/.artpodrc")
-    ) {
-        try? shell("CI_PIPELINE=TRUE bundle exec pod repo-art remove cocoapods-art")
-        try shell("CI_PIPELINE=TRUE bundle exec pod repo-art add cocoapods-art \"https://artifactory.raiffeisen.ru/artifactory/api/pods/cocoapods\"")
-    } else {
-        let artifactoryUpdateTime = fileModificationDate(path: "\(homeDirURL.path)/.cocoapods/repos-art/cocoapods-art")
-        if let artifactoryUpdateTime = artifactoryUpdateTime,
-           Date().timeIntervalSince(artifactoryUpdateTime) > 24 * 60 * 60 {
-            print("Artifactory needs to be updates: \(artifactoryUpdateTime)")
-            try shell("CI_PIPELINE=TRUE bundle exec pod repo-art update cocoapods-art")
+    if needsPodInstall {
+        if (
+            (try? shell("CI_PIPELINE=TRUE bundle exec pod repo-art list | grep cocoapods-art")) == nil ||
+            !FileManager.default.fileExists(atPath: "\(homeDirURL.path)/.cocoapods/repos-art/cocoapods-art/.artpodrc")
+        ) {
+            try? shell("CI_PIPELINE=TRUE bundle exec pod repo-art remove cocoapods-art")
+            try shell("CI_PIPELINE=TRUE bundle exec pod repo-art add cocoapods-art \"https://artifactory.raiffeisen.ru/artifactory/api/pods/cocoapods\"")
         } else {
-            print("Artifactory already updated: \(artifactoryUpdateTime)")
+            let artifactoryUpdateTime = fileModificationDate(path: "\(homeDirURL.path)/.cocoapods/repos-art/cocoapods-art")
+            if let artifactoryUpdateTime = artifactoryUpdateTime,
+               Date().timeIntervalSince(artifactoryUpdateTime) > 24 * 60 * 60 {
+                print("Artifactory needs to be updates: \(artifactoryUpdateTime)")
+                try shell("CI_PIPELINE=TRUE bundle exec pod repo-art update cocoapods-art")
+            } else {
+                print("Artifactory already updated: \(artifactoryUpdateTime)")
+            }
         }
     }
-    
-        
+            
     try shell("./scripts/generator -e _Prebuild")
     try shell("tuist generate -n")
-    try shell("CI_PIPELINE=TRUE TYPE=STATIC bundle exec pod install --repo-update")
+    if needsPodInstall {
+        try shell("CI_PIPELINE=TRUE TYPE=STATIC bundle exec pod install --repo-update")
+    }
 } catch {
     fatalError(error.localizedDescription)
 }
