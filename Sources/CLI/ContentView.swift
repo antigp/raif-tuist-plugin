@@ -35,7 +35,7 @@ struct ContentView: View {
                         TextField("Search", text: $searchString)
                     }
                     ScrollView {
-                        ForEach($model.allPods.filter({ $0.name.wrappedValue.uppercased().contains(searchString.uppercased()) || searchString.isEmpty } ).filter({ !displayOnlyDevPod || $0.devPod.wrappedValue })) { pod in
+                        ForEach($model.allPods.filter({ $0.name.wrappedValue.uppercased().contains(searchString.uppercased()) || $0.ioName.wrappedValue.uppercased().contains(searchString.uppercased()) || searchString.isEmpty } ).filter({ !displayOnlyDevPod || $0.devPod.wrappedValue })) { pod in
                             HStack {
                                 Toggle("is DevPod", isOn: pod.devPod)
                                     .toggleStyle(.checkbox).frame(width: 80, alignment: .leading)
@@ -43,7 +43,12 @@ struct ContentView: View {
                                         guard newValue == true else { return }
                                         createDevPod = pod
                                     }
-                                Text(pod.name.wrappedValue).frame(width: 150, alignment: .leading)
+                                VStack {
+                                    Text(pod.name.wrappedValue).frame(width: 180, alignment: .leading)
+                                    if !pod.ioName.wrappedValue.isEmpty {
+                                        Text(pod.ioName.wrappedValue).font(.caption).frame(width: 180, alignment: .leading)
+                                    }
+                                }
                                 if pod.devPod.wrappedValue {
                                     Text("Branch:").frame(width: 50, alignment: .leading)
                                     TextField("", text: pod.branch).frame(width: 250, alignment: .leading)
