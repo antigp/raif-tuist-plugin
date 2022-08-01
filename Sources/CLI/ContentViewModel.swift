@@ -138,7 +138,8 @@ class ContentViewModel: ObservableObject {
     
     func closeXcode() {
         try? shell("kill $(ps aux | grep 'Xcode' | awk '{print $2}')")
-        try? shell("kill -9 $(ps aux | grep 'Xcode' | awk '{print $2}')")        
+        try? shell("kill -9 $(ps aux | grep 'Xcode' | awk '{print $2}')")
+        try? shell("killall -9 \"Xcode\"")
     }
     
     func checkout(pod: PodDependecy, to destination: CheckoutType) throws {
