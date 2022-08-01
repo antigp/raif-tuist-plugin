@@ -82,6 +82,7 @@ class ContentViewModel: ObservableObject {
     }
     
     func generatePod() {
+        NSApplication.shared.hide(nil)
         isGenerating = true
         let toUpdatePods = Array(Set(allPods).subtracting(Set(initialPods))).sorted(by: {$0.startLine > $1.startLine})
         var updatedPods = dependecyRawList
