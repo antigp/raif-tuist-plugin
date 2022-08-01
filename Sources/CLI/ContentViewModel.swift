@@ -333,9 +333,18 @@ struct PodDependecy: Identifiable, Equatable, Hashable {
         }
     }
     
+    var ioName: String {
+        get {
+            components[":io"] ?? ""
+        }
+        set {
+            components[":io"] = "\(newValue)"
+        }
+    }
+    
     var generatedData: String {
         return """
-pod_constructor :name => '\(name)',
+pod_constructor :name => '\(name)', \(ioName.isEmpty ? "" : "\n                    :io => '\(ioName)',")
                     :version => '\(version)',
                     :settings => \(settings),
                     :branch => "\(branch)",

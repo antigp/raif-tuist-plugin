@@ -31,7 +31,7 @@ do {
         } else {
             let artifactoryUpdateTime = fileModificationDate(path: "\(homeDirURL.path)/.cocoapods/repos-art/cocoapods-art")
             if let artifactoryUpdateTime = artifactoryUpdateTime,
-               Date().timeIntervalSince(artifactoryUpdateTime) > 24 * 60 * 60 {
+               Date().timeIntervalSince(artifactoryUpdateTime) > 5 * 24 * 60 * 60 {
                 print("Artifactory needs to be updates: \(artifactoryUpdateTime)")
                 try shell("CI_PIPELINE=TRUE bundle exec pod repo-art update cocoapods-art")
             } else {
